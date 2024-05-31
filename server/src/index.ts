@@ -3,13 +3,16 @@ import { Hono } from 'hono'
 import { sdk } from '@audius/sdk'
 import fetch from 'cross-fetch'
 
-const audioShakeToken = ''
+const audioShakeToken = process.env.AUDIO_SHAKE_TOKEN
+const environment = process.env.ENVIRONMENT as 'staging' | 'production'
+const apiKey = process.env.AUDIUS_API_SECRET as string
+const apiSecret = process.env.AUDIUS_API_SECRET as string
 
 const app = new Hono()
 const audiusSdk = sdk({
-  environment: 'staging',
-  apiKey: '54121fbe1b6a7391a3b7edc548135ace6ef47c9b',
-  apiSecret: '1978effdaa2d44af26a72945c7d79533719aa704acc0b68aeef5d6b93b55da6c'
+  environment,
+  apiKey,
+  apiSecret
 })
 
 app.post('/original', async (c) => {
@@ -122,7 +125,7 @@ app.post('/stems', async (c) => {
 })
 
 app.get('/', (c) => {
-  return c.text('Hello')
+  return c.text('audius shake')
 })
 
 const port = 3000

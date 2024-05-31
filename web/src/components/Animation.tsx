@@ -10,7 +10,6 @@ export const Animation = () => {
           align-items: center;
           height: 100vh;
           background: #FCFCFC;
-          overflow: hidden;
           font-family: Arial, sans-serif;
           color: white;
         }
