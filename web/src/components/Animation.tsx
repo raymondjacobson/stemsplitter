@@ -1,23 +1,12 @@
-export const Animation = () => {
+export const Animation = ({ size }: { size: 'small' | 'large' }) => {
   return (
     <div>
       <style>{`
-        body {
-          margin: 0;
-          padding: 0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          background: #FCFCFC;
-          font-family: Arial, sans-serif;
-          color: white;
-        }
-
         .container {
           position: relative;
-          width: 300px;
-          height: 300px;
+          width: ${size === 'large' ? '300px' : '60px' };
+          height: ${size === 'large' ? '300px' : '60px' };
+          scale: ${size === 'large' ? '1' : '0.50'};
         }
 
         .disc {
@@ -46,6 +35,7 @@ export const Animation = () => {
         }
 
         .bar {
+          visibility: ${size === 'large' ? 'visible' : 'hidden'};
           position: absolute;
           bottom: 20px;
           width: 10px;
