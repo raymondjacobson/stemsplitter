@@ -106,7 +106,10 @@ const TrackTile = ({track}: {track: Track}) => {
   const { sdk } = useSdk()
 
   const onPlay = useCallback(async () => {
-    audioRef.current.src = await sdk.tracks.streamTrack({ trackId: track.id })
+    const src = await sdk.tracks.streamTrack({ trackId: track.id })
+    if (audioRef.current.src !== src) {
+      audioRef.current.src = src
+    }
     audioRef.current.play()
     setIsPlaying(true)
   }, [audioRef, setIsPlaying])
@@ -118,7 +121,9 @@ const TrackTile = ({track}: {track: Track}) => {
 
   const onPlayStemFile = useCallback((link: string) => {
     setStemPlaying({...stemPlaying, [link]: true})
-    audioRef.current.src = link
+    if (audioRef.current.src !== link) {
+      audioRef.current.src = link
+    }
     audioRef.current.play()
 
   }, [stemPlaying, setStemPlaying])
