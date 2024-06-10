@@ -2,7 +2,6 @@ import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Track } from '@audius/sdk'
 import {
   Button,
-  Divider,
   ThemeProvider as HarmonyThemeProvider,
   IconButton,
   IconCloudDownload,
@@ -21,6 +20,7 @@ import { Status } from './contexts/types'
 import { keyframes } from '@emotion/react'
 
 const environment = import.meta.env.VITE_ENVIRONMENT as 'staging' | 'production'
+const serverUrl = import.meta.env.VITE_SERVER_URL as string
 
 const audiusHostname = environment === 'staging' ? 'staging.audius.co' : 'audius.co'
 
@@ -94,24 +94,19 @@ const Catalog = ({tracks}: {tracks: Track[]}) => {
 
 const TrackTile = ({track}: {track: Track}) => {
   const [isPlaying, setIsPlaying] = useState(false)
-  const [trackState, setTrackState] = useState<'idle' | 'generating' | 'generated' | 'uploading' | 'uploaded'>(
+  const [trackState, setTrackState] = useState<'idle' | 'generating' | 'generated' | 'uploading' | 'uploaded' | 'error'>(
     'idle'
   )
   const [isMonetized, setIsMonetized] = useState<boolean>(false)
   const [amount, setAmount] = useState<string>('')
+  const [stems, setStems] = useState<any>()
+  const [stemPlaying, setStemPlaying] = useState<any>({})
 
   const audioRef = useRef(new Audio())
   const { sdk } = useSdk()
-  useEffect(() => {
-    const fn = async () => {
-      if (track) {
-        audioRef.current.src = await sdk.tracks.streamTrack({ trackId: track.id })
-      }
-    }
-    fn()
-  }, [track])
 
-  const onPlay = useCallback(() => {
+  const onPlay = useCallback(async () => {
+    audioRef.current.src = await sdk.tracks.streamTrack({ trackId: track.id })
     audioRef.current.play()
     setIsPlaying(true)
   }, [audioRef, setIsPlaying])
@@ -120,6 +115,34 @@ const TrackTile = ({track}: {track: Track}) => {
     audioRef.current.pause()
     setIsPlaying(false)
   }, [audioRef, setIsPlaying])
+
+  const onPlayStemFile = useCallback((link: string) => {
+    setStemPlaying({...stemPlaying, [link]: true})
+    audioRef.current.src = link
+    audioRef.current.play()
+
+  }, [stemPlaying, setStemPlaying])
+
+  const onPauseStemFile = useCallback((link: string) => {
+    setStemPlaying({...stemPlaying, [link]: false})
+    audioRef.current.pause()
+  }, [stemPlaying, setStemPlaying])
+
+  const downloadStemFile = useCallback(async (link: string) => {
+    const response = await fetch(link)
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    const arrayBuffer = await response.arrayBuffer()
+    const blob = new Blob([arrayBuffer], { type: 'audio/wav' })
+    const element = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    element.href = url
+    element.download = 'downloaded-file.wav'
+    document.body.appendChild(element)
+    element.click()
+    document.body.removeChild(element)
+  }, [])
 
   const handleCheckboxChange = () => {
     setIsMonetized(!isMonetized)
@@ -131,6 +154,69 @@ const TrackTile = ({track}: {track: Track}) => {
   const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
       setAmount(e.target.value)
   }
+
+  const onGenerate = useCallback(async () => {
+    setTrackState('generating')
+    console.log('generate stems')
+
+    try {
+      const generateResponse = await fetch(`${serverUrl}/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({trackId: track.id})
+      }).then(response => response.json())
+  
+      const { jobId } = generateResponse
+  
+      const statusUrl = new URL(`${serverUrl}/status`)
+      statusUrl.searchParams.append('jobId', jobId)
+      const statusResponse: any = await new Promise(resolve => {
+        setInterval(async () => {
+          const statusResponse = await fetch(statusUrl)
+          if (statusResponse.ok) {
+            resolve(statusResponse)
+          }
+        }, 5000)
+      })
+  
+      setStems(statusResponse)
+      setTrackState('generated')
+    } catch (e) {
+      console.error(e)
+      setTrackState('error')
+    }
+
+  }, [track, setTrackState, setStems])
+
+  const onUpload = useCallback(async () => {
+    setTrackState('uploading')
+    console.log('uploading stems')
+
+    try {
+      const uploadResponse = await fetch(`${serverUrl}/upload`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          trackId: track.id,
+          stems,
+          isMonetized,
+          amount
+        })
+      }).then(response => response.json())
+
+      console.log(uploadResponse)
+
+      setTrackState('uploaded')
+    } catch (e) {
+      console.error(e)
+      setTrackState('error')
+    }
+
+  }, [stems])
 
   return (
     <Flex p='xl' gap='xl' direction='column' css={{ ':hover': { backgroundColor: 'var(--harmony-n-50)' }}}>
@@ -176,10 +262,11 @@ const TrackTile = ({track}: {track: Track}) => {
             color='active'
             onClick={isPlaying ? onPause : onPlay}
           />
-          {trackState === 'idle'
+          {trackState === 'idle' || trackState === 'error'
             ? <Flex>
               <Button
                 size='small'
+                onClick={onGenerate}
                 variant='secondary'
               >
                 generate stems
@@ -216,6 +303,7 @@ const TrackTile = ({track}: {track: Track}) => {
                 <Button
                   size='small'
                   variant='secondary'
+                  onClick={onUpload}
                 >
                   upload to Audius
                 </Button>
@@ -267,31 +355,47 @@ const TrackTile = ({track}: {track: Track}) => {
             </Flex>
             : null
           }
+          {trackState === 'error'
+            ? <Flex>
+              <Text
+                variant='label'
+                color='danger'
+              >
+                Error. Please Retry.
+              </Text>
+            </Flex>
+            : null
+          }
         </Flex>
       </Flex>
       {trackState === 'generated' || trackState === 'uploading' || trackState === 'uploaded'
         ? <Flex direction='column' gap='l'>
             <Text variant='label' color='accent'>AI Generated Stems ✨</Text>
-            <Flex gap='l' alignItems='flex-start' border='strong' borderRadius='s' p='m'>
-              <IconButton
-                icon={isPlaying ? IconPause : IconPlay}
-                aria-label='play'
-                color='active'
-                size='s'
-                onClick={isPlaying ? onPause : onPlay}
-              />
-              <IconButton
-                icon={IconCloudDownload}
-                aria-label='play'
-                color='active'
-                size='s'
-                onClick={isPlaying ? onPause : onPlay}
-              />
-              <Flex direction='column'>
-                <Text variant='label' color='subdued'>Vocal</Text>
-                <Text variant='body' color='default'>{track.title}</Text>
-              </Flex>
-            </Flex>
+            {stems?.files.map((stemFile: any) => {
+              const isPlaying = stemPlaying[stemFile.link]
+              return (
+                <Flex gap='l' alignItems='flex-start' border='strong' borderRadius='s' p='m'>
+                  <IconButton
+                    icon={isPlaying ? IconPause : IconPlay}
+                    aria-label='play'
+                    color='active'
+                    size='s'
+                    onClick={() => isPlaying ? onPauseStemFile(stemFile.link) : onPauseStemFile(stemFile.link)}
+                  />
+                  <IconButton
+                    icon={IconCloudDownload}
+                    aria-label='play'
+                    color='active'
+                    size='s'
+                    onClick={() => downloadStemFile(stemFile.link)}
+                  />
+                  <Flex direction='column'>
+                    <Text variant='label' color='subdued'>{stemFile.category}</Text>
+                    <Text variant='body' color='default'>{stemFile.title}</Text>
+                  </Flex>
+                </Flex>
+              )
+            })}
           </Flex>
         : null
       }
