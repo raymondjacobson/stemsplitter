@@ -380,7 +380,7 @@ const TrackTile = ({track}: {track: Track}) => {
                     aria-label='play'
                     color='active'
                     size='s'
-                    onClick={() => isPlaying ? onPauseStemFile(stemFile.link) : onPauseStemFile(stemFile.link)}
+                    onClick={() => isPlaying ? onPauseStemFile(stemFile.link) : onPlayStemFile(stemFile.link)}
                   />
                   <IconButton
                     icon={IconCloudDownload}
