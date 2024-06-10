@@ -18,6 +18,7 @@ import { useSdk } from './hooks/useSdk'
 import { AuthProvider, useAuth } from './contexts/AuthProvider'
 import { Status } from './contexts/types'
 import { keyframes } from '@emotion/react'
+import { Scrubber } from './components/Scrubber'
 
 const environment = import.meta.env.VITE_ENVIRONMENT as 'staging' | 'production'
 const serverUrl = import.meta.env.VITE_SERVER_URL as string
@@ -241,7 +242,7 @@ const TrackTile = ({track}: {track: Track}) => {
               color='default'
               href={`https://${audiusHostname}${track.permalink}`}
               textVariant='body'
-              target='_blank'
+              isExternal
             >
               {`${audiusHostname}${track.permalink}`}
             </TextLink>
@@ -404,6 +405,7 @@ const TrackTile = ({track}: {track: Track}) => {
           </Flex>
         : null
       }
+      <Scrubber audioRef={audioRef} />
     </Flex>
   )
 }
