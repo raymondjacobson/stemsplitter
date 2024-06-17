@@ -19,9 +19,11 @@ import { AuthProvider, useAuth } from './contexts/AuthProvider'
 import { Status } from './contexts/types'
 import { keyframes } from '@emotion/react'
 import { Scrubber } from './components/Scrubber'
+import { AppType } from '..'
+import { hc } from "hono/client";
 
 const environment = import.meta.env.VITE_ENVIRONMENT as 'staging' | 'production'
-const serverUrl = import.meta.env.VITE_SERVER_URL as string
+const client = hc<AppType>("/");
 
 const audiusHostname = environment === 'staging' ? 'staging.audius.co' : 'audius.co'
 
@@ -113,7 +115,7 @@ const TrackTile = ({track}: {track: Track}) => {
     }
     audioRef.current.play()
     setIsPlaying(true)
-  }, [audioRef, setIsPlaying])
+  }, [audioRef, setIsPlaying, sdk.tracks, track.id])
 
   const onPause = useCallback(() => {
     audioRef.current.pause()
@@ -166,28 +168,28 @@ const TrackTile = ({track}: {track: Track}) => {
     console.log('generate stems')
 
     try {
-      const generateResponse = await fetch(`${serverUrl}/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({trackId: track.id})
-      }).then(response => response.json())
+      const res = await client.generate.$post({
+        json: {
+          trackId: track.id
+        }
+      })
+      console.log(res)
   
-      const { jobId } = generateResponse
-  
-      const statusUrl = new URL(`${serverUrl}/status`)
-      statusUrl.searchParams.append('jobId', jobId)
-      const statusResponse: any = await new Promise(resolve => {
+      const { jobId } = res
+      const uploadedStems = await new Promise(resolve => {
         setInterval(async () => {
-          const statusResponse = await fetch(statusUrl)
-          if (statusResponse.ok) {
-            resolve(statusResponse)
+          const res = await client.status.$get({
+            query: {
+              jobId
+            }
+          })
+          if (res.ok) {
+            resolve(res)
           }
         }, 5000)
       })
   
-      setStems(statusResponse)
+      setStems(uploadedStems)
       setTrackState('generated')
     } catch (e) {
       console.error(e)
@@ -201,28 +203,22 @@ const TrackTile = ({track}: {track: Track}) => {
     console.log('uploading stems')
 
     try {
-      const uploadResponse = await fetch(`${serverUrl}/upload`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const res = await client.upload.$post({
+        json: {
           trackId: track.id,
           stems,
           isMonetized,
           amount
-        })
-      }).then(response => response.json())
-
-      console.log(uploadResponse)
-
+        }
+      })
+      console.log(res)
       setTrackState('uploaded')
     } catch (e) {
       console.error(e)
       setTrackState('error')
     }
 
-  }, [stems])
+  }, [stems, amount, isMonetized, track.id])
 
   return (
     <Flex p='xl' gap='xl' direction='column' css={{ ':hover': { backgroundColor: 'var(--harmony-n-50)' }}}>
@@ -253,8 +249,7 @@ const TrackTile = ({track}: {track: Track}) => {
           </Flex>
           <Flex direction='column'>
             <Text variant='label' color='subdued'>Released</Text>
-            {/* @ts-ignore */}
-            <Text variant='body' color='default'>{prettyDate(new Date(track.releaseDate))}</Text>
+            <Text variant='body' color='default'>{prettyDate(new Date(track?.releaseDate ?? ''))}</Text>
           </Flex>
           <Flex direction='column'>
             <Text variant='label' color='subdued'>Duration</Text>
@@ -412,6 +407,8 @@ const TrackTile = ({track}: {track: Track}) => {
 
 const Page = () => {
   const loginWithAudiusButtonRef = useRef<HTMLDivElement>(null)
+  const { sdk } = useSdk()
+  const { user, login, status } = useAuth()
 
   useEffect(() => {
     sdk.oauth?.init({
@@ -434,26 +431,24 @@ const Page = () => {
         scope: 'write'
       })
     }
-  }, [loginWithAudiusButtonRef])
+  }, [loginWithAudiusButtonRef, sdk.users, sdk.oauth, login])
 
-  const { sdk } = useSdk()
-  const { user, login, status } = useAuth()
   const [tracks, setTracks] = useState<Track[]>([])
 
-  const fetchTracks = async () => {
+  const fetchTracks = useCallback(async () => {
     const { data: tracks } = await sdk.users.getTracksByUser({
       id: user?.id ?? '',
       userId: user?.id ?? ''
     })
 
     setTracks(tracks ?? [])
-  }
+  }, [sdk.users, user, setTracks])
 
   useEffect(() => {
     if (user) {
       fetchTracks()
     }
-  }, [user])
+  }, [user, fetchTracks])
 
   if (status === Status.LOADING) {
     return null
@@ -461,7 +456,7 @@ const Page = () => {
 
   return (<>
     <style>{`.audiusLoginButton { font-family: 'Avenir Next LT Pro' };`}</style>
-    <Flex pv='3xl' direction='column' alignItems='center' backgroundColor='surface1' w='100vw' css={{ overflow: 'scroll', minHeight: '100vh', userSelect: 'none' }} gap='xl'>
+    <Flex pv='3xl' direction='column' alignItems='center' backgroundColor='surface1' w='100vw' h='100%' css={{ overflow: 'scroll', minHeight: '100vh', userSelect: 'none' }} gap='xl'>
       <Animation size={user ? 'small' : 'large'} />
       <Flex p='3xl' w='100%' direction='column' gap='xl'>
       {user
@@ -497,7 +492,6 @@ const Page = () => {
 }
 
 export default function App() {
- 
   return (
     <HarmonyThemeProvider theme='day'>
       <AuthProvider>
