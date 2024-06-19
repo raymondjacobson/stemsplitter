@@ -23,7 +23,7 @@ import { AppType } from '..'
 import { hc } from "hono/client";
 
 const environment = import.meta.env.VITE_ENVIRONMENT as 'staging' | 'production'
-const client = hc<AppType>("/");
+const client = hc<AppType>('/');
 
 const audiusHostname = environment === 'staging' ? 'staging.audius.co' : 'audius.co'
 
@@ -82,6 +82,17 @@ const prettyTime = (seconds: number) => {
   return result.length > 0 ? result.join(', ') : '0 seconds';
 }
 
+const dollarsToCents = (dollars: number | string) => {
+  // Ensure the input is a number and handle the conversion
+  if (typeof dollars === 'number' && !isNaN(dollars)) {
+    return Math.round(dollars * 100);
+  } else if (typeof dollars === 'string' && !isNaN(parseFloat(dollars))) {
+    return Math.round(parseFloat(dollars) * 100);
+  } else {
+    throw new Error('Invalid input: please provide a valid number or numeric string.');
+  }
+}
+
 const Catalog = ({tracks}: {tracks: Track[]}) => {
   return (
     <Flex direction='column' gap='xl' pv='xl' w='100%'>
@@ -136,17 +147,10 @@ const TrackTile = ({track}: {track: Track}) => {
     audioRef.current.pause()
   }, [stemPlaying, setStemPlaying])
 
-  const downloadStemFile = useCallback(async (link: string) => {
-    const response = await fetch(link)
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    const arrayBuffer = await response.arrayBuffer()
-    const blob = new Blob([arrayBuffer], { type: 'audio/wav' })
+  const downloadStemFile = useCallback(async (link: string, name: string) => {
     const element = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    element.href = url
-    element.download = 'downloaded-file.wav'
+    element.href = link
+    element.download = name
     document.body.appendChild(element)
     element.click()
     document.body.removeChild(element)
@@ -175,18 +179,33 @@ const TrackTile = ({track}: {track: Track}) => {
       })
       console.log(res)
   
-      const { jobId } = res
+      const json: { job: { id: number }}[] = await res.json()
+      const jobIds = json.map(({ job }) => job.id)
       const uploadedStems = await new Promise(resolve => {
-        setInterval(async () => {
-          const res = await client.status.$get({
-            query: {
-              jobId
-            }
-          })
-          if (res.ok) {
-            resolve(res)
+        const checkStatuses = async () => {
+          try {
+            const statuses = await Promise.all(jobIds.map(async jobId => {
+              const res = await client.status.$get({
+                query: {
+                  jobId
+                }
+              });
+              if (res.ok) {
+                const json = await res.json();
+                if (json.job.status === 'completed') {
+                  return json;
+                }
+              }
+              throw new Error('not resolved');
+            }));
+            resolve(statuses);
+          } catch (e) {
+            // wait for 5 seconds before polling again
+            setTimeout(checkStatuses, 5000);
           }
-        }, 5000)
+        };
+      
+        checkStatuses();
       })
   
       setStems(uploadedStems)
@@ -206,11 +225,15 @@ const TrackTile = ({track}: {track: Track}) => {
       const res = await client.upload.$post({
         json: {
           trackId: track.id,
+          userId: track.user.id,
           stems,
           isMonetized,
-          amount
+          amount: amount ? dollarsToCents(amount) : undefined
         }
       })
+      if (!res.ok) {
+        throw new Error('Error uploading tracks')
+      }
       console.log(res)
       setTrackState('uploaded')
     } catch (e) {
@@ -218,10 +241,10 @@ const TrackTile = ({track}: {track: Track}) => {
       setTrackState('error')
     }
 
-  }, [stems, amount, isMonetized, track.id])
+  }, [stems, amount, isMonetized, track.id, track.user.id])
 
   return (
-    <Flex p='xl' gap='xl' direction='column' css={{ ':hover': { backgroundColor: 'var(--harmony-n-50)' }}}>
+    <Flex p='xl' gap='xl' direction='column' css={{ ':hover': { backgroundColor: 'var(--harmony-n-50)' } }}>
       <Flex alignItems='flex-start' gap='xl' w='100%'>
         <Flex borderRadius='m' css={{ overflow: 'hidden' }}>
           <PreloadImage width='100' height='100' src={track.artwork?._480x480 || ''} />
@@ -270,7 +293,7 @@ const TrackTile = ({track}: {track: Track}) => {
                 onClick={onGenerate}
                 variant='secondary'
               >
-                generate stems
+                generate AI ✨ stems
               </Button>
             </Flex>
             : null
@@ -315,6 +338,11 @@ const TrackTile = ({track}: {track: Track}) => {
                     type="checkbox"
                     checked={isMonetized}
                     onChange={handleCheckboxChange}
+                    style={{
+                      color: 'var(--harmony-n-400)',
+                      borderRadius: '3px',
+                      border: '1px solid var(--harmony-n-400)'
+                    }}
                 />
               </Flex>
               {isMonetized && (
@@ -325,6 +353,11 @@ const TrackTile = ({track}: {track: Track}) => {
                         value={amount}
                         onChange={handleAmountChange}
                         placeholder="0.00"
+                        style={{
+                          color: 'var(--harmony-n-400)',
+                          borderRadius: '3px',
+                          border: '1px solid var(--harmony-n-400)'
+                        }}
                     />
                   </Flex>
               )}
@@ -348,7 +381,7 @@ const TrackTile = ({track}: {track: Track}) => {
               <Button
                 size='small'
                 variant='secondary'
-                css={{ backgroundColor: 'var(--harmony-light-green)'}}
+                css={{ backgroundColor: 'var(--harmony-light-green)', color: 'var(--harmony-white)'}}
                 disabled
               >
                 uploaded
@@ -362,7 +395,7 @@ const TrackTile = ({track}: {track: Track}) => {
                 variant='label'
                 color='danger'
               >
-                Error. Please Retry.
+                Error. Please Try Again.
               </Text>
             </Flex>
             : null
@@ -372,27 +405,30 @@ const TrackTile = ({track}: {track: Track}) => {
       {trackState === 'generated' || trackState === 'uploading' || trackState === 'uploaded'
         ? <Flex direction='column' gap='l'>
             <Text variant='label' color='accent'>AI Generated Stems ✨</Text>
-            {stems?.files.map((stemFile: any) => {
-              const isPlaying = stemPlaying[stemFile.link]
+            {stems?.map((stem: any) => {
+              const link = stem.job.outputAssets[0].link
+              const category = stem.job.metadata.name
+              const name = stem.job.outputAssets[0].name
+              const isPlaying = stemPlaying[link]
               return (
-                <Flex gap='l' alignItems='flex-start' border='strong' borderRadius='s' p='m'>
+                <Flex key={link} gap='l' alignItems='flex-start' border='strong' borderRadius='s' p='m'>
                   <IconButton
                     icon={isPlaying ? IconPause : IconPlay}
                     aria-label='play'
                     color='active'
                     size='s'
-                    onClick={() => isPlaying ? onPauseStemFile(stemFile.link) : onPlayStemFile(stemFile.link)}
+                    onClick={() => isPlaying ? onPauseStemFile(link) : onPlayStemFile(link)}
                   />
                   <IconButton
                     icon={IconCloudDownload}
                     aria-label='play'
                     color='active'
                     size='s'
-                    onClick={() => downloadStemFile(stemFile.link)}
+                    onClick={() => downloadStemFile(link, name)}
                   />
                   <Flex direction='column'>
-                    <Text variant='label' color='subdued'>{stemFile.category}</Text>
-                    <Text variant='body' color='default'>{stemFile.title}</Text>
+                    <Text variant='label' color='subdued'>{category}</Text>
+                    <Text variant='body' color='default'>{name}</Text>
                   </Flex>
                 </Flex>
               )

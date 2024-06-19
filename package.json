@@ -3,13 +3,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --mode client && vite build",
     "preview": "wrangler pages dev",
     "deploy": "$npm_execpath run build && wrangler pages deploy"
   },
   "dependencies": {
     "@audius/harmony": "latest",
-    "@audius/sdk": "latest",
+    "@audius/sdk": "4.1.1-beta.1",
     "@hono/node-server": "^1.11.1",
     "@hono/zod-validator": "^0.2.2",
     "cross-fetch": "^4.0.0",
@@ -25,6 +25,8 @@
     "@esbuild-plugins/node-globals-polyfill": "0.2.3",
     "@hono/vite-cloudflare-pages": "^0.4.1",
     "@hono/vite-dev-server": "^0.12.2",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
@@ -36,6 +38,8 @@
     "typescript": "^5.0.2",
     "vite": "^5.3.1",
     "vite-plugin-commonjs": "^0.10.1",
+    "vite-plugin-node-polyfills": "^0.22.0",
+    "vite-plugin-wasm": "^3.3.0",
     "wrangler": "^3.57.2"
   }
 }

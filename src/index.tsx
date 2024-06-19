@@ -1,8 +1,8 @@
-import { Hono } from "hono";
-import { renderToString } from "react-dom/server";
-import { z } from "zod";
+import { Hono } from "hono"
+import { renderToString } from "react-dom/server"
+import { z } from "zod"
 import { zValidator } from '@hono/zod-validator'
-import { UploadTrackRequest, sdk } from '@audius/sdk'
+import { Genre, StemCategory, UploadTrackRequest, sdk } from '@audius/sdk'
 import { logger } from 'hono/logger'
 import { HTTPException } from 'hono/http-exception'
 import fetch from 'cross-fetch'
@@ -11,6 +11,7 @@ const audioShakeToken = import.meta.env.VITE_AUDIO_SHAKE_TOKEN
 const environment = import.meta.env.VITE_ENVIRONMENT as 'staging' | 'production'
 const apiKey = import.meta.env.VITE_AUDIUS_API_SECRET as string
 const apiSecret = import.meta.env.VITE_AUDIUS_API_SECRET as string
+const audioShakeCallbackUrl = import.meta.env.VITE_AUDIO_SHAKE_CALLBACK_URL as string
 
 const app = new Hono()
 app.use(logger())
@@ -110,10 +111,11 @@ app.post(
           name: track.data?.title
         })
       })
-      const uploadJson: AudioShakeUploadResponse | AudioShakeError = await uploadResponse.json()
+      const uploadJson: AudioShakeUploadResponse | AudioShakeError = await res.json()
       console.log(uploadJson)
-      if (!res.ok || uploadJson.error) {
-        throw new Error(uploadJson.message)
+      
+      if (!res.ok || 'error' in uploadJson) {
+        throw new Error('message' in uploadJson ? uploadJson.message : undefined)
       }
   
       const stems = await Promise.all(STEM_OPTIONS.map(async stemOption => {
@@ -125,19 +127,84 @@ app.post(
           },
           body: JSON.stringify({
             metadata: {
-              format: 'wav',
+              format: 'mp3',
               name: stemOption
             },
-            callbackUrl: '',
+            callbackUrl: audioShakeCallbackUrl,
             assetId: uploadJson.id
           })
         })
-        const json: AudioShakeStemUploadResponse | AudioShakeError = await response.json()
+        const json: AudioShakeStemUploadResponse | AudioShakeError = await res.json()
         if (!res.ok || 'error' in json) {
-          throw new Error(json.message)
+          throw new Error('message' in json ? json.message : undefined)
         }
         return json
       }))
+    //   const uploadJson = {
+    //     name: 'test download',
+    //     id: 'clxjdjwt602fm0jmy1puw3seq',
+    //     fileType: 'audio/mpeg',
+    //     format: 'mp3',
+    //     link: 'https://audioshake-groovy-us-east.s3.amazonaws.com/production/cl5r6docg34785goof5lc96a27/clxjdjwt602fm0jmy1puw3seq/sourcefile?AWSAccessKeyId=ASIAZNJO53JJT4I3LFXE&Expires=1718653786&Signature=PeZ7RQj7HReYTpOAXvRdnkJXnGY%3D&response-content-disposition=attachment%3B%20filename%3D%22file%22%3B%20filename%2A%3DUTF-8%27%27test%2520download%252emp3&x-amz-security-token=IQoJb3JpZ2luX2VjEFgaCXVzLWVhc3QtMSJIMEYCIQChyM6cE9BqfoUA1nBH5MBzCHTnW2QR1DK0VZgTc%2FuDYwIhALPtGRQAmBK8g6YakY%2BR%2Bp7FOZ%2BfP1CF9KLbmbMh8hfLKoYECPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMNjQ3MDI3ODc0Mzg3IgzAxQEyMroF9JyZoQ8q2gO%2BgUY8QGkn%2BodnKEbRt%2FPisO3Mn2925MvPzWWk0aFL2%2FAGqAAR8Pg6BSaymrjm%2B%2B8RGF5us%2FKm%2FcZ2n%2FFFU5k3cidE9xx6FdbtClDb153Oz5KGBg8ESij%2BbfuksW%2FcUt8OVGgucaNDc2Jkyf3M%2BztK2GrN%2F8i4npXAshqzt32jAlJTKPY70PI9tVY%2B7nb30eyNNxMdtnnYDLB7pajSFEPyq3qxyFETgnS24NrmVxGN5hoXWyrWzeK5gpRhh%2FQu5tyeKvzuI%2FznEXQp1jn%2Bb1eA2nrvLI5GI9SwxupUgBjNxSl6JF7KV4ChbcOB4fQd9AMUPEuEcyETmAFKuxwxhcycF7IXD3sxzwDfnNe0w4CcIrYM7zbpXZ%2Bp568CtGEDWbMmXlNcZstTU2mdner6Nk5x7ItZxgBD88LyIG%2BBaqCsOsflkqXJ6R6NBlX6vpL%2FM4Bk51IbEF9AENxZoW3uLa2bvjm2jCf083RlXEiFyIsK3EAtFixeA0fLIS4PuUjEejFTEebTsx5Y%2FJDbJcR8iWFCfOuyaWYOHJhYsHQARe25nn04heQd2bZglYQK%2FxLOnxpewBhepvU9nX8OdUmZJjy1ePkjzgFeTMhrVrJHWDS0dFm2LjS7oGCHaoowsKXBswY6pAHtFdhPReF%2FOW8qiI4yuLpdqNNudJqSnp8Qd9ZgdMEQK91pYyny9jwENhCjW8LfbtvBktlltdGzsk5v5vGemYPuDxCTKr6IoIH6UlyM02EIKyxIxKBwVMy4SojngkmXDf%2F91CeeEmKFYPhxiBIXbFsj7Ppb3VA6toV9fj6QyBDIalgW97UkvLg%2BBTq5cxV8BDMQar%2FHcnRbOg8Ayd8phGb%2B95gMnA%3D%3D'
+    //   }
+    //   const stems = [
+    //     {
+    //         "job": {
+    //             "id": "clxjds98h02f20io97n5pdm59",
+    //             "clientId": "cl5r6docg34785goof5lc96a27",
+    //             "requestId": "clxjds98h02f20io97n5pdm59",
+    //             "licenseId": "clxjcn1qy02fk0jmy78is3v7v",
+    //             "metadata": {
+    //                 "format": "wav",
+    //                 "name": "vocals"
+    //             },
+    //             "callbackUrl": "https://staging.audius.co",
+    //             "status": "created"
+    //         }
+    //     },
+    //     {
+    //         "job": {
+    //             "id": "clxjds9a602fb0imyfqinh4n8",
+    //             "clientId": "cl5r6docg34785goof5lc96a27",
+    //             "requestId": "clxjds9a602fb0imyfqinh4n8",
+    //             "licenseId": "clxjcn1qy02fk0jmy78is3v7v",
+    //             "metadata": {
+    //                 "format": "wav",
+    //                 "name": "instrumental"
+    //             },
+    //             "callbackUrl": "https://staging.audius.co",
+    //             "status": "created"
+    //         }
+    //     },
+    //     {
+    //         "job": {
+    //             "id": "clxjds8zm02ft0jmy9dcl5zs3",
+    //             "clientId": "cl5r6docg34785goof5lc96a27",
+    //             "requestId": "clxjds8zm02ft0jmy9dcl5zs3",
+    //             "licenseId": "clxjcn1qy02fk0jmy78is3v7v",
+    //             "metadata": {
+    //                 "format": "wav",
+    //                 "name": "bass"
+    //             },
+    //             "callbackUrl": "https://staging.audius.co",
+    //             "status": "created"
+    //         }
+    //     },
+    //     {
+    //         "job": {
+    //             "id": "clxjds9l002f30io9382wgxdj",
+    //             "clientId": "cl5r6docg34785goof5lc96a27",
+    //             "requestId": "clxjds9l002f30io9382wgxdj",
+    //             "licenseId": "clxjcn1qy02fk0jmy78is3v7v",
+    //             "metadata": {
+    //                 "format": "wav",
+    //                 "name": "drums"
+    //             },
+    //             "callbackUrl": "https://staging.audius.co",
+    //             "status": "created"
+    //         }
+    //     }
+    // ]
   
       return c.json(stems)
     } catch (e) {
@@ -149,10 +216,10 @@ app.post(
 
 app.get(
   '/status',
-  zValidator('param', z.object({ trackId: z.string() })),
+  zValidator('query', z.object({ jobId: z.string() })),
   async (c) => {
     try {
-      const jobId = c.req.param('jobId')
+      const { jobId } = c.req.valid('query')
       if (!jobId) {
         throw new Error('no jobId')
       }
@@ -165,10 +232,10 @@ app.get(
       })
       const json: AudioShakeStatusResponse | AudioShakeError = await res.json()
       if (!res.ok || 'error' in json) {
-        throw new Error(res.message)
+        throw new Error('message' in json ? json.message : undefined)
       }
 
-      return c.json(res)
+      return c.json(json)
     } catch (e) {
       console.error('Caught error: ', e)
       throw new HTTPException(500, { message: (e as Error).message || 'Unknown server error', cause: e })
@@ -177,49 +244,90 @@ app.get(
 )
 
 // stem should have title, category, link
-app.post('/upload', async (c) => {
-  const body = await c.req.json()
-  const trackId = body.trackId
-  const userId = body.userId
-  const isMonetized = body.isMonetized
-  const amount = body.amount
+app.post(
+  '/upload',
+  zValidator('json', z.object({
+    trackId: z.string(),
+    userId: z.string(),
+    isMonetized: z.boolean().default(false),
+    amount: z.number().optional(),
+    stems: z.array(z.object({
+      job: z.object({
+        metadata: z.object({
+          name: z.string(),
+        }),
+        outputAssets: z.array(z.object({
+          name: z.string(),
+          link: z.string()
+        }))
+      })
+    }))
+  })),
+  async (c) => {
+  const { trackId, userId, isMonetized, amount, stems } = c.req.valid('json')
   const track = await audiusSdk.tracks.getTrack({ trackId })
-  if (!track) {
+  if (!track || !track.data || !track.data.id) {
     throw new Error('no track found')
   }
-
-  for (const stem of body.stems) {
-    const trackFileResponse = await fetch(stem.link)
-    const trackFileBuffer = Buffer.from(await trackFileResponse.arrayBuffer())
-    const metadata: UploadTrackRequest['metadata'] = {
-      ...track.data,
-      title: stem.title,
-      // @ts-ignore
-      isDownloadable: true,
-      // @ts-ignore
-      stemOf: {
-        parent_track_id: trackId,
-        category: stem.category
-      } 
+  
+  for (const stem of stems) {
+    let category
+    switch (stem.job.metadata.name) {
+      case 'vocals':
+        category = StemCategory.LEAD_VOCALS
+        break
+      case 'instrumental':
+        category = StemCategory.INSTRUMENTAL
+        break
+      case 'bass':
+        category = StemCategory.BASS
+        break
+      case 'drums':
+        category = StemCategory.PERCUSSION
+        break
+      default:
+        category = StemCategory.OTHER
     }
-    if (isMonetized) {
-      metadata.isDownloadGated = true
-      metadata.downloadConditions = {
-        usdcPurchase: {
-          price: amount
-        }
-      }
+    const trackFileResponse = await fetch(stem.job.outputAssets[0].link)
+    const trackFileBuffer = Buffer.from(await trackFileResponse.arrayBuffer())
+    const trackImageResponse = await fetch(track.data?.artwork?._150x150 ?? '')
+    const imageFileBuffer = Buffer.from(await trackImageResponse.arrayBuffer())
+    const metadata: UploadTrackRequest['metadata'] = {
+      title: stem.job.metadata.name,
+      genre: (track.data?.genre as Genre) ?? Genre.ALTERNATIVE,
+      isDownloadable: true,
+      stemOf: {
+        parentTrackId: trackId,
+        category
+      },
+      origFilename: stem.job.outputAssets[0].name,
+      isOriginalAvailable: true
     }
     await audiusSdk.tracks.uploadTrack({
       userId,
       metadata,
       trackFile: { buffer: trackFileBuffer },
-      coverArtFile: { buffer: Buffer.from('') }
+      coverArtFile: { buffer: imageFileBuffer }
+    })
+  }
+
+  if (isMonetized && amount) {
+    await audiusSdk.tracks.updateTrack({
+      userId,
+      trackId: track.data?.id,
+      metadata: {
+        isDownloadable: true,
+        downloadConditions: {
+          usdcPurchase: {
+            price: amount
+          }
+        }
+      }
     })
   }
   return c.json({ link: track.data?.permalink })
 })
 
-export type AppType = typeof app;
+export type AppType = typeof app
 
-export default app;
+export default app
