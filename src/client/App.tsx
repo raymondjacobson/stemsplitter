@@ -214,7 +214,6 @@ const TrackTile = ({track}: {track: Track}) => {
       console.error(e)
       setTrackState('error')
     }
-
   }, [track, setTrackState, setStems])
 
   const onUpload = useCallback(async () => {
@@ -299,25 +298,28 @@ const TrackTile = ({track}: {track: Track}) => {
             : null
           }
           {trackState === 'generating'
-            ? <Flex>
+            ? <Flex direction='column'>
               <Button
                 size='small'
                 variant='secondary'
                 disabled
                 css={{
-                  backgroundImage: `linear-gradient(to right,
-                    rgba(0,0,0,0.01)   0%, 
-                    rgba(0,0,0,0.03)  25%, 
-                    rgba(0,0,0,0.00)  50%, 
-                    rgba(0,0,0,0.01)  75%, 
-                    rgba(0,0,0,0.00) 100%
+                  backgroundImage: `linear-gradient(
+                    to right,
+                    rgba(0, 0, 0, 0.1) 0%,
+                    rgba(0, 0, 0, 0.05) 25%,
+                    rgba(0, 0, 0, 0.0) 50%,
+                    rgba(0, 0, 0, 0.05) 75%,
+                    rgba(0, 0, 0, 0.1) 100%
                   )`,
-                  backgroundSize: '200%',
-                  animation: `3s cubic-bezier(.25,.50,.75,.50) infinite ${loadingAnimation}`
+                  backgroundSize: '300%',
+                  backgroundPosition: '0% 0%',
+                  animation: `${loadingAnimation} 5s ease-in-out infinite`
                 }}
               >
                 generating stems...
               </Button>
+              <Text color='subdued' strength='strong' variant='body'>This may take a minute</Text>
             </Flex>
             : null
           }
@@ -365,14 +367,28 @@ const TrackTile = ({track}: {track: Track}) => {
             : null
           }
           {trackState === 'uploading'
-            ? <Flex>
+            ? <Flex direction='column'>
               <Button
                 size='small'
                 variant='secondary'
                 disabled
+                css={{
+                  backgroundImage: `linear-gradient(
+                    to right,
+                    rgba(0, 0, 0, 0.1) 0%,
+                    rgba(0, 0, 0, 0.05) 25%,
+                    rgba(0, 0, 0, 0.0) 50%,
+                    rgba(0, 0, 0, 0.05) 75%,
+                    rgba(0, 0, 0, 0.1) 100%
+                  )`,
+                  backgroundSize: '300%',
+                  backgroundPosition: '0% 0%',
+                  animation: `${loadingAnimation} 5s ease-in-out infinite`
+                }}
               >
                 uploading to Audius...
               </Button>
+              <Text color='subdued' strength='strong' variant='body'>This may take a minute</Text>
             </Flex>
             : null
           }
@@ -436,6 +452,23 @@ const TrackTile = ({track}: {track: Track}) => {
           </Flex>
         : null
       }
+      {track.stems?.length > 0
+        ? <Flex direction='column' gap='l'>
+            <Text variant='label' color='accent'>Existing Stems</Text>
+            {track.stems?.map((stem: { id: string, category: string, orig_filename: string }) => {
+              const category = stem.category
+              const name = stem.orig_filename
+              return (
+                <Flex key={stem.id} gap='l' alignItems='flex-start' border='strong' borderRadius='s' p='m'>
+                  <Flex direction='column'>
+                    <Text variant='label' color='subdued'>{category}</Text>
+                    <Text variant='body' color='default'>{name}</Text>
+                  </Flex>
+                </Flex>
+              )
+            })}
+          </Flex>
+        : null }
       <Scrubber audioRef={audioRef} />
     </Flex>
   )
@@ -476,9 +509,22 @@ const Page = () => {
       id: user?.id ?? '',
       userId: user?.id ?? ''
     })
+    const dn = await sdk.services.discoveryNodeSelector.getSelectedEndpoint()
+    const tracksWithStems = await Promise.all((tracks ?? []).map(
+      async track => {
+        try {
+          const stems = await (await fetch(`${dn}/v1/full/tracks/${track.id}/stems`)).json()
+          track.stems = stems.data
+          return track
+        } catch (e) {
+          track.stems = []
+          return track
+        }
+      }
+    ))
 
-    setTracks(tracks ?? [])
-  }, [sdk.users, user, setTracks])
+    setTracks(tracksWithStems ?? [])
+  }, [sdk, user, setTracks])
 
   useEffect(() => {
     if (user) {

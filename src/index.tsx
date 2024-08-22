@@ -140,71 +140,6 @@ app.post(
         }
         return json
       }))
-    //   const uploadJson = {
-    //     name: 'test download',
-    //     id: 'clxjdjwt602fm0jmy1puw3seq',
-    //     fileType: 'audio/mpeg',
-    //     format: 'mp3',
-    //     link: 'https://audioshake-groovy-us-east.s3.amazonaws.com/production/cl5r6docg34785goof5lc96a27/clxjdjwt602fm0jmy1puw3seq/sourcefile?AWSAccessKeyId=ASIAZNJO53JJT4I3LFXE&Expires=1718653786&Signature=PeZ7RQj7HReYTpOAXvRdnkJXnGY%3D&response-content-disposition=attachment%3B%20filename%3D%22file%22%3B%20filename%2A%3DUTF-8%27%27test%2520download%252emp3&x-amz-security-token=IQoJb3JpZ2luX2VjEFgaCXVzLWVhc3QtMSJIMEYCIQChyM6cE9BqfoUA1nBH5MBzCHTnW2QR1DK0VZgTc%2FuDYwIhALPtGRQAmBK8g6YakY%2BR%2Bp7FOZ%2BfP1CF9KLbmbMh8hfLKoYECPD%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQAxoMNjQ3MDI3ODc0Mzg3IgzAxQEyMroF9JyZoQ8q2gO%2BgUY8QGkn%2BodnKEbRt%2FPisO3Mn2925MvPzWWk0aFL2%2FAGqAAR8Pg6BSaymrjm%2B%2B8RGF5us%2FKm%2FcZ2n%2FFFU5k3cidE9xx6FdbtClDb153Oz5KGBg8ESij%2BbfuksW%2FcUt8OVGgucaNDc2Jkyf3M%2BztK2GrN%2F8i4npXAshqzt32jAlJTKPY70PI9tVY%2B7nb30eyNNxMdtnnYDLB7pajSFEPyq3qxyFETgnS24NrmVxGN5hoXWyrWzeK5gpRhh%2FQu5tyeKvzuI%2FznEXQp1jn%2Bb1eA2nrvLI5GI9SwxupUgBjNxSl6JF7KV4ChbcOB4fQd9AMUPEuEcyETmAFKuxwxhcycF7IXD3sxzwDfnNe0w4CcIrYM7zbpXZ%2Bp568CtGEDWbMmXlNcZstTU2mdner6Nk5x7ItZxgBD88LyIG%2BBaqCsOsflkqXJ6R6NBlX6vpL%2FM4Bk51IbEF9AENxZoW3uLa2bvjm2jCf083RlXEiFyIsK3EAtFixeA0fLIS4PuUjEejFTEebTsx5Y%2FJDbJcR8iWFCfOuyaWYOHJhYsHQARe25nn04heQd2bZglYQK%2FxLOnxpewBhepvU9nX8OdUmZJjy1ePkjzgFeTMhrVrJHWDS0dFm2LjS7oGCHaoowsKXBswY6pAHtFdhPReF%2FOW8qiI4yuLpdqNNudJqSnp8Qd9ZgdMEQK91pYyny9jwENhCjW8LfbtvBktlltdGzsk5v5vGemYPuDxCTKr6IoIH6UlyM02EIKyxIxKBwVMy4SojngkmXDf%2F91CeeEmKFYPhxiBIXbFsj7Ppb3VA6toV9fj6QyBDIalgW97UkvLg%2BBTq5cxV8BDMQar%2FHcnRbOg8Ayd8phGb%2B95gMnA%3D%3D'
-    //   }
-    //   const stems = [
-    //     {
-    //         "job": {
-    //             "id": "clxjds98h02f20io97n5pdm59",
-    //             "clientId": "cl5r6docg34785goof5lc96a27",
-    //             "requestId": "clxjds98h02f20io97n5pdm59",
-    //             "licenseId": "clxjcn1qy02fk0jmy78is3v7v",
-    //             "metadata": {
-    //                 "format": "wav",
-    //                 "name": "vocals"
-    //             },
-    //             "callbackUrl": "https://staging.audius.co",
-    //             "status": "created"
-    //         }
-    //     },
-    //     {
-    //         "job": {
-    //             "id": "clxjds9a602fb0imyfqinh4n8",
-    //             "clientId": "cl5r6docg34785goof5lc96a27",
-    //             "requestId": "clxjds9a602fb0imyfqinh4n8",
-    //             "licenseId": "clxjcn1qy02fk0jmy78is3v7v",
-    //             "metadata": {
-    //                 "format": "wav",
-    //                 "name": "instrumental"
-    //             },
-    //             "callbackUrl": "https://staging.audius.co",
-    //             "status": "created"
-    //         }
-    //     },
-    //     {
-    //         "job": {
-    //             "id": "clxjds8zm02ft0jmy9dcl5zs3",
-    //             "clientId": "cl5r6docg34785goof5lc96a27",
-    //             "requestId": "clxjds8zm02ft0jmy9dcl5zs3",
-    //             "licenseId": "clxjcn1qy02fk0jmy78is3v7v",
-    //             "metadata": {
-    //                 "format": "wav",
-    //                 "name": "bass"
-    //             },
-    //             "callbackUrl": "https://staging.audius.co",
-    //             "status": "created"
-    //         }
-    //     },
-    //     {
-    //         "job": {
-    //             "id": "clxjds9l002f30io9382wgxdj",
-    //             "clientId": "cl5r6docg34785goof5lc96a27",
-    //             "requestId": "clxjds9l002f30io9382wgxdj",
-    //             "licenseId": "clxjcn1qy02fk0jmy78is3v7v",
-    //             "metadata": {
-    //                 "format": "wav",
-    //                 "name": "drums"
-    //             },
-    //             "callbackUrl": "https://staging.audius.co",
-    //             "status": "created"
-    //         }
-    //     }
-    // ]
   
       return c.json(stems)
     } catch (e) {
@@ -292,6 +227,7 @@ app.post(
     const trackFileBuffer = Buffer.from(await trackFileResponse.arrayBuffer())
     const trackImageResponse = await fetch(track.data?.artwork?._150x150 ?? '')
     const imageFileBuffer = Buffer.from(await trackImageResponse.arrayBuffer())
+    const name = stem.job.outputAssets[0].name
     const metadata: UploadTrackRequest['metadata'] = {
       title: stem.job.metadata.name,
       genre: (track.data?.genre as Genre) ?? Genre.ALTERNATIVE,
@@ -300,13 +236,13 @@ app.post(
         parentTrackId: trackId,
         category
       },
-      origFilename: stem.job.outputAssets[0].name,
+      origFilename: name,
       isOriginalAvailable: true
     }
     await audiusSdk.tracks.uploadTrack({
       userId,
       metadata,
-      trackFile: { buffer: trackFileBuffer },
+      trackFile: { buffer: trackFileBuffer, name },
       coverArtFile: { buffer: imageFileBuffer }
     })
   }
@@ -317,14 +253,47 @@ app.post(
       trackId: track.data?.id,
       metadata: {
         isDownloadable: true,
+        isDownloadGated: true,
         downloadConditions: {
           usdcPurchase: {
-            price: amount
+            price: amount,
+            splits: {}
           }
         }
       }
     })
   }
+  return c.json({ link: track.data?.permalink })
+})
+
+// stem should have title, category, link
+app.post(
+  '/monetize',
+  zValidator('json', z.object({
+    trackId: z.string(),
+    userId: z.string(),
+    amount: z.number(),
+  })),
+  async (c) => {
+  const { trackId, userId, amount } = c.req.valid('json')
+  const track = await audiusSdk.tracks.getTrack({ trackId })
+  if (!track || !track.data || !track.data.id) {
+    throw new Error('no track found')
+  }
+  await audiusSdk.tracks.updateTrack({
+    userId,
+    trackId: track.data?.id,
+    metadata: {
+      isDownloadable: true,
+      isDownloadGated: true,
+      downloadConditions: {
+        usdcPurchase: {
+          price: amount,
+          splits: {}
+        }
+      }
+    }
+  })
   return c.json({ link: track.data?.permalink })
 })
 

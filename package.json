@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@audius/harmony": "latest",
-    "@audius/sdk": "4.1.1-beta.1",
+    "@audius/sdk": "4.2.0",
     "@hono/node-server": "^1.11.1",
     "@hono/zod-validator": "^0.2.2",
     "cross-fetch": "^4.0.0",
