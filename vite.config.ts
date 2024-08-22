@@ -26,7 +26,6 @@ export default defineConfig(({ mode }) => {
       })
     ],
     optimizeDeps: {
-      include: ['eventemitter3'],  // Ensure it pre-bundles the dependency
       esbuildOptions: {
         define: {
           global: 'globalThis'
@@ -49,6 +48,19 @@ export default defineConfig(({ mode }) => {
   if (mode === 'client') {
     config = {
       ...config,
+      plugins: [
+        pages({
+          entry: 'src/index.tsx'
+        }),
+        wasm(),
+        devServer({
+          entry: 'src/index.tsx',
+        }),
+        replace({
+          preventAssignment: true,
+          'require$$0': 'require$$0_renamed',
+        }),
+      ],
       build: {
         ...config.build,
         rollupOptions: {
