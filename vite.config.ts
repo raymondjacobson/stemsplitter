@@ -5,6 +5,11 @@ import { UserConfig, defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 // import nodePolyfills from 'rollup-plugin-polyfill-node'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import replace from '@rollup/plugin-replace'
+import alias from '@rollup/plugin-alias'
+import resolve from '@rollup/plugin-node-resolve';
+
+
 
 function replaceNodeImports(): Plugin {
   return {
@@ -15,9 +20,9 @@ function replaceNodeImports(): Plugin {
         if (chunk.type === 'chunk') {
           chunk.code = chunk.code
             // Match various patterns for `crypto` and `stream` imports
-            .replace(/from\s*['"]crypto['"]/g, 'from "node:crypto"')
-            .replace(/from\s*['"]fs['"]/g, 'from "browserify-fs"')
-            .replace(/from\s*['"]stream['"]/g, 'from "node:stream"');
+            .replace(/from\s*['"]fs['"]/g, 'from"browserify-fs"')
+            .replace(/from\s*['"]crypto['"]/g, 'from"node:crypto"')
+            .replace(/from\s*['"]stream['"]/g, 'from"node:stream"');
         }
       }
     },
@@ -65,8 +70,37 @@ export default defineConfig(({ mode }) => {
       devServer({
         entry: 'src/index.tsx'
       }),
-      replaceNodeImports()
+      // alias({
+      //   entries: [
+      //     { find: 'fs', replacement: 'browserify-fs' },
+      //     { find: 'crypto', replacement: 'node:crypto' },
+      //     { find: 'stream', replacement: 'node:stream' }
+      //   ]
+      // }),
+      // replace({
+      //   delimiters: ['',''],
+      //   sourcemap: true,
+      //   verbose: true,
+      //   preventAssignment: true,
+      //   'from"fs"': 'from "browserify-fs"',
+      //   'from"crypto"': 'from "node:crypto"',
+      //   'from"stream"': 'from "node:stream"'
+      // }),
+      replaceNodeImports(),
+      // resolve({
+      //   browser: true,
+      //   preferBuiltins: false
+      // })
     ],
+    build: {
+      rollupOptions: {
+        external: (id) => {
+          // Same logic to ensure browserify-fs is included
+          if (id === 'browserify-fs') return false;
+          return /node_modules/.test(id);
+        },
+      }
+    },
     optimizeDeps: {
       esbuildOptions: {
         define: {
