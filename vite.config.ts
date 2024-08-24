@@ -17,9 +17,6 @@ function replaceNodeImports(): Plugin {
             .replace(/from\s*['"]fs['"]/g, 'from"browserify-fs"')
             .replace(/from\s*['"]crypto['"]/g, 'from"node:crypto"')
             .replace(/from\s*['"]stream['"]/g, 'from"node:stream"')
-            .replace(/from\s*['"]util['"]/g, 'from"node:util"')
-            .replace(/\("util"\)/g, '("node:util")')
-            .replace(/("require")("stream")/g, '("require")("node:stream")');
         }
       }
     },
@@ -65,8 +62,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       pages({
-        entry: 'src/index.tsx',
-        minify: false
+        entry: 'src/index.tsx'
       }),
       devServer({
         entry: 'src/index.tsx'
