@@ -1,7 +1,7 @@
-diff --git a/node_modules/fwd-stream/node_modules/readable-stream/lib/_stream_readable.js b/node_modules/fwd-stream/node_modules/readable-stream/lib/_stream_readable.js
+diff --git a/node_modules/levelup/node_modules/readable-stream/lib/_stream_readable.js b/node_modules/levelup/node_modules/readable-stream/lib/_stream_readable.js
 index 6307220..da35954 100644
---- a/node_modules/fwd-stream/node_modules/readable-stream/lib/_stream_readable.js
-+++ b/node_modules/fwd-stream/node_modules/readable-stream/lib/_stream_readable.js
+--- a/node_modules/levelup/node_modules/readable-stream/lib/_stream_readable.js
++++ b/node_modules/levelup/node_modules/readable-stream/lib/_stream_readable.js
 @@ -40,7 +40,7 @@ if (!EE.listenerCount) EE.listenerCount = function(emitter, type) {
  };
  /*</replacement>*/
@@ -11,10 +11,10 @@ index 6307220..da35954 100644
  
  /*<replacement>*/
  var util = require('core-util-is');
-diff --git a/node_modules/fwd-stream/node_modules/readable-stream/lib/_stream_writable.js b/node_modules/fwd-stream/node_modules/readable-stream/lib/_stream_writable.js
+diff --git a/node_modules/levelup/node_modules/readable-stream/lib/_stream_writable.js b/node_modules/levelup/node_modules/readable-stream/lib/_stream_writable.js
 index 4bdaa4f..3e8511b 100644
---- a/node_modules/fwd-stream/node_modules/readable-stream/lib/_stream_writable.js
-+++ b/node_modules/fwd-stream/node_modules/readable-stream/lib/_stream_writable.js
+--- a/node_modules/levelup/node_modules/readable-stream/lib/_stream_writable.js
++++ b/node_modules/levelup/node_modules/readable-stream/lib/_stream_writable.js
 @@ -37,7 +37,7 @@ var util = require('core-util-is');
  util.inherits = require('inherits');
  /*</replacement>*/
@@ -24,10 +24,10 @@ index 4bdaa4f..3e8511b 100644
  
  util.inherits(Writable, Stream);
  
-diff --git a/node_modules/fwd-stream/node_modules/readable-stream/readable.js b/node_modules/fwd-stream/node_modules/readable-stream/readable.js
+diff --git a/node_modules/levelup/node_modules/readable-stream/readable.js b/node_modules/levelup/node_modules/readable-stream/readable.js
 index 26511e8..6190b62 100644
---- a/node_modules/fwd-stream/node_modules/readable-stream/readable.js
-+++ b/node_modules/fwd-stream/node_modules/readable-stream/readable.js
+--- a/node_modules/levelup/node_modules/readable-stream/readable.js
++++ b/node_modules/levelup/node_modules/readable-stream/readable.js
 @@ -1,4 +1,4 @@
 -var Stream = require('stream'); // hack to fix a circular dependency issue when used with browserify
 +var Stream = require('node:stream'); // hack to fix a circular dependency issue when used with browserify
