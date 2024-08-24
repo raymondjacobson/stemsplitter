@@ -116,7 +116,8 @@ export default defineConfig(({ mode }) => {
       }
     },
     define: {
-      'process.env': {}
+      'process.env': {},
+      'process': {}
     },
     build: {
       commonjsOptions: {
