@@ -28,9 +28,7 @@ export default defineConfig(({ mode }) => {
     return {
       plugins: [
         react(),
-        nodePolyfills({
-          include: ['process']
-        }),
+        nodePolyfills(),
       ],
       optimizeDeps: {
         esbuildOptions: {
@@ -82,7 +80,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     ssr: {
-      external: ['react', 'react-dom', 'process']
+      external: ['node_modules/alert']
     },
     define: {
       'process.env': {}
