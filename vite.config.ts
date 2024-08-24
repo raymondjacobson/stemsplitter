@@ -81,6 +81,9 @@ export default defineConfig(({ mode }) => {
       }),
       nodePolyfills({
         protocolImports: true,
+        globals: {
+          process: true,
+        },
       }),
       replaceNodeImports(),
     ],
