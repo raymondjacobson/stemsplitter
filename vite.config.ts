@@ -13,11 +13,9 @@ function replaceNodeImports(): Plugin {
       // Iterate over all the generated files in the bundle
       for (const [fileName, chunk] of Object.entries(bundle)) {
         if (chunk.type === 'chunk') {
-          // Replace 'crypto', 'fs', and 'stream' with their 'node:' counterparts
           chunk.code = chunk.code
-            // Match various patterns for `crypto`, `fs`, and `stream` imports
+            // Match various patterns for `crypto` and `stream` imports
             .replace(/from\s*['"]crypto['"]/g, 'from "node:crypto"')
-            .replace(/from\s*['"]fs['"]/g, 'from "node:fs"')
             .replace(/from\s*['"]stream['"]/g, 'from "node:stream"');
         }
       }
