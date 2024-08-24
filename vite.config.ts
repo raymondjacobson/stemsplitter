@@ -3,8 +3,8 @@ import devServer from '@hono/vite-dev-server'
 import { UserConfig, defineConfig } from 'vite'
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 import react from '@vitejs/plugin-react'
-// import nodePolyfills from 'rollup-plugin-polyfill-node'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import nodePolyfills from 'rollup-plugin-polyfill-node'
+// import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 
 function replaceNodeImports(): Plugin {
@@ -29,9 +29,7 @@ export default defineConfig(({ mode }) => {
       plugins: [
         react(),
         nodePolyfills({
-          globals: {
-            process: true,
-          },
+          include: ['process']
         }),
       ],
       optimizeDeps: {
@@ -68,8 +66,7 @@ export default defineConfig(({ mode }) => {
         entry: 'src/index.tsx'
       }),
       nodePolyfills({
-        protocolImports: true,
-        exclude: ['process']
+        include: ['process']
       }),
       replaceNodeImports(),
     ],
