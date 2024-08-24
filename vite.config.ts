@@ -38,6 +38,11 @@ export default defineConfig(({ mode }) => {
     return {
       plugins: [
         react(),
+        nodePolyfills({
+          globals: {
+            process: true,
+          },
+        }),
       ],
       optimizeDeps: {
         esbuildOptions: {
