@@ -20,9 +20,12 @@ function replaceNodeImports(): Plugin {
         if (chunk.type === 'chunk') {
           chunk.code = chunk.code
             // Match various patterns for `crypto` and `stream` imports
-            .replace(/from\s*['"]fs['"]/g, 'from"browserify-fs"')
-            .replace(/from\s*['"]crypto['"]/g, 'from"node:crypto"')
-            .replace(/from\s*['"]stream['"]/g, 'from"node:stream"');
+            // .replace(/from\s*['"]fs['"]/g, 'from"browserify-fs"')
+            // .replace(/from\s*['"]crypto['"]/g, 'from"node:crypto"')
+            // .replace(/from\s*['"]stream['"]/g, 'from"node:stream"');
+            .replaceAll("\"crypto\"", "\"node:crypto\"")
+            .replaceAll("\"stream\"", "\"node:stream\"")
+            .replaceAll("\"fs\"", "\"browserify-fs\"")
         }
       }
     },
@@ -92,15 +95,6 @@ export default defineConfig(({ mode }) => {
       //   preferBuiltins: false
       // })
     ],
-    build: {
-      rollupOptions: {
-        external: (id) => {
-          // Same logic to ensure browserify-fs is included
-          if (id === 'browserify-fs') return false;
-          return /node_modules/.test(id);
-        },
-      }
-    },
     optimizeDeps: {
       esbuildOptions: {
         define: {
@@ -112,6 +106,6 @@ export default defineConfig(({ mode }) => {
         //   })
         // ]
       }
-    }
+    },
   } as UserConfig
 })
