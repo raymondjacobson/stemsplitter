@@ -5,28 +5,19 @@ import { UserConfig, defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 // import nodePolyfills from 'rollup-plugin-polyfill-node'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
-import replace from '@rollup/plugin-replace'
-import alias from '@rollup/plugin-alias'
-import resolve from '@rollup/plugin-node-resolve';
-
 
 
 function replaceNodeImports(): Plugin {
   return {
     name: 'replace-node-imports',
     generateBundle(options, bundle) {
-      // Iterate over all the generated files in the bundle
       for (const [fileName, chunk] of Object.entries(bundle)) {
         if (chunk.type === 'chunk') {
           chunk.code = chunk.code
-            // Match various patterns for `crypto` and `stream` imports
             .replace(/from\s*['"]fs['"]/g, 'from"browserify-fs"')
             .replace(/from\s*['"]crypto['"]/g, 'from"node:crypto"')
             .replace(/from\s*['"]stream['"]/g, 'from"node:stream"')
             .replace(/("require")("stream")/g, '("require")("node:stream")');
-            // .replaceAll("\"crypto\"", "\"node:crypto\"")
-            // .replaceAll("\"stream\"", "\"node:stream\"")
-            // .replaceAll("\"fs\"", "\"browserify-fs\"")
         }
       }
     },
@@ -82,27 +73,11 @@ export default defineConfig(({ mode }) => {
       nodePolyfills({
         protocolImports: true,
         globals: {
-          process: true,
+          process: false,
         },
       }),
       replaceNodeImports(),
     ],
-    // resolve: {
-    //   alias: {
-    //     stream: 'node:stream', // Ensure this alias points correctly
-    //   },
-    // },
-    // build: {
-    //   rollupOptions: {
-    //     external: ['fwd-stream', 'readable-stream'],  // Exclude them from the bundle
-    //   },
-    // },
-    // resolve: {
-    //   // dedupe: ['fwd-stream', 'readable-stream'],  // Ensure only one version of these packages is used
-    //   alias: {
-    //     stream: 'stream-browserify'
-    //   }
-    // },
     optimizeDeps: {
       esbuildOptions: {
         define: {
