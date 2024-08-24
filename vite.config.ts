@@ -5,7 +5,7 @@ import { UserConfig, defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 // import nodePolyfills from 'rollup-plugin-polyfill-node'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
-
+import replace from '@rollup/plugin-replace'
 
 function replaceNodeImports(): Plugin {
   return {
@@ -90,6 +90,13 @@ export default defineConfig(({ mode }) => {
     build: {
       commonjsOptions: {
         transformMixedEsModules: true
+      },
+      rollupOptions: {
+        plugins: [
+          replace({
+            'process.env.NODE_ENV': JSON.stringify( 'production' )
+          })
+        ]
       }
     }
   } as UserConfig
