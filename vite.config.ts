@@ -97,8 +97,11 @@ export default defineConfig(({ mode }) => {
     ],
     build: {
       rollupOptions: {
-        external: ['fwd-stream'],
+        external: ['fwd-stream', 'readable-stream'],  // Exclude them from the bundle
       },
+    },
+    resolve: {
+      dedupe: ['fwd-stream', 'readable-stream'],  // Ensure only one version of these packages is used
     },
     optimizeDeps: {
       esbuildOptions: {
