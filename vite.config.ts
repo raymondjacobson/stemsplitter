@@ -95,6 +95,11 @@ export default defineConfig(({ mode }) => {
       //   preferBuiltins: false
       // })
     ],
+    build: {
+      rollupOptions: {
+        external: ['fwd-stream'],
+      },
+    },
     optimizeDeps: {
       esbuildOptions: {
         define: {
