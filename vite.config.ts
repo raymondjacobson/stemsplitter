@@ -2,10 +2,11 @@ import pages from '@hono/vite-cloudflare-pages'
 import devServer from '@hono/vite-dev-server'
 import { UserConfig, defineConfig } from 'vite'
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
-import nodePolyfills from "rollup-plugin-node-polyfills";
 import react from '@vitejs/plugin-react'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineConfig(({ mode }) => {
+  console.log('Vite config loaded');
   if (mode === 'client') {
     return {
       plugins: [
@@ -42,7 +43,8 @@ export default defineConfig(({ mode }) => {
       }),
       devServer({
         entry: 'src/index.tsx'
-      })
+      }),
+      nodePolyfills()
     ],
     optimizeDeps: {
       esbuildOptions: {
@@ -52,16 +54,6 @@ export default defineConfig(({ mode }) => {
         plugins: [
           NodeGlobalsPolyfillPlugin({
             buffer: true
-          })
-        ]
-      }
-    },
-    build: {
-      rollupOptions: {
-        plugins: [
-          nodePolyfills({
-            crypto: true,
-            fs: true
           })
         ]
       }
