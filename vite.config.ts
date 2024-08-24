@@ -6,6 +6,25 @@ import react from '@vitejs/plugin-react'
 // import nodePolyfills from 'rollup-plugin-polyfill-node'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
+function replaceNodeImports(): Plugin {
+  return {
+    name: 'replace-node-imports',
+    generateBundle(options, bundle) {
+      // Iterate over all the generated files in the bundle
+      for (const [fileName, chunk] of Object.entries(bundle)) {
+        if (chunk.type === 'chunk') {
+          // Replace 'crypto', 'fs', and 'stream' with their 'node:' counterparts
+          chunk.code = chunk.code
+            // Match various patterns for `crypto`, `fs`, and `stream` imports
+            .replace(/from\s*['"]crypto['"]/g, 'from "node:crypto"')
+            .replace(/from\s*['"]fs['"]/g, 'from "node:fs"')
+            .replace(/from\s*['"]stream['"]/g, 'from "node:stream"');
+        }
+      }
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   if (mode === 'client') {
     return {
@@ -46,7 +65,8 @@ export default defineConfig(({ mode }) => {
       }),
       devServer({
         entry: 'src/index.tsx'
-      })
+      }),
+      replaceNodeImports()
     ],
     optimizeDeps: {
       esbuildOptions: {
