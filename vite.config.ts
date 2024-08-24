@@ -17,7 +17,7 @@ function replaceNodeImports(): Plugin {
             .replace(/from\s*['"]fs['"]/g, 'from"browserify-fs"')
             .replace(/from\s*['"]crypto['"]/g, 'from"node:crypto"')
             .replace(/from\s*['"]stream['"]/g, 'from"node:stream"')
-            .replace(/\("util"\)/g, '("util")')
+            .replace(/\("util"\)/g, '("node:util")')
             .replace(/("require")("stream")/g, '("require")("node:stream")');
         }
       }
