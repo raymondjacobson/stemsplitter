@@ -16,6 +16,7 @@ function replaceNodeImports(): Plugin {
           chunk.code = chunk.code
             // Match various patterns for `crypto` and `stream` imports
             .replace(/from\s*['"]crypto['"]/g, 'from "node:crypto"')
+            .replace(/from\s*['"]fs['"]/g, 'from "browserify-fs"')
             .replace(/from\s*['"]stream['"]/g, 'from "node:stream"');
         }
       }
@@ -55,9 +56,9 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
-      nodePolyfills({
-        include: ['crypto', 'stream', 'fs']
-      }),
+      // nodePolyfills({
+      //   // include: ['crypto', 'stream', 'fs']
+      // }),
       pages({
         entry: 'src/index.tsx'
       }),
