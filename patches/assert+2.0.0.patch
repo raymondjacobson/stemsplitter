@@ -1,12 +1,12 @@
 diff --git a/node_modules/assert/build/assert.js b/node_modules/assert/build/assert.js
-index a4bc0a8..a86400f 100644
+index a4bc0a8..618f447 100644
 --- a/node_modules/assert/build/assert.js
 +++ b/node_modules/assert/build/assert.js
 @@ -21,6 +21,8 @@
  // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  'use strict';
  
-+import _require from 'node:util'
++import _require2 from 'node:util'
 +
  function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
  
