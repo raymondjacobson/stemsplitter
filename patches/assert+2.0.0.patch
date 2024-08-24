@@ -1,0 +1,24 @@
+diff --git a/node_modules/assert/build/internal/assert/assertion_error.js b/node_modules/assert/build/internal/assert/assertion_error.js
+index 9295f0a..3a95db9 100644
+--- a/node_modules/assert/build/internal/assert/assertion_error.js
++++ b/node_modules/assert/build/internal/assert/assertion_error.js
+@@ -2,6 +2,9 @@
+ // https://github.com/nodejs/node/commit/0817840f775032169ddd70c85ac059f18ffcc81c
+ 'use strict';
+ 
++import _require from 'node:util'
++
++
+ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+ 
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+@@ -32,8 +35,7 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
+ 
+ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+ 
+-var _require = require('util/'),
+-    inspect = _require.inspect;
++var inspect = _require.inspect;
+ 
+ var _require2 = require('../errors'),
+     ERR_INVALID_ARG_TYPE = _require2.codes.ERR_INVALID_ARG_TYPE; // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
