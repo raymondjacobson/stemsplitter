@@ -1,7 +1,7 @@
 import pages from '@hono/vite-cloudflare-pages'
 import devServer from '@hono/vite-dev-server'
 import { UserConfig, defineConfig } from 'vite'
-// import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 import react from '@vitejs/plugin-react'
 // import nodePolyfills from 'rollup-plugin-polyfill-node'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
@@ -42,11 +42,12 @@ export default defineConfig(({ mode }) => {
           define: {
             global: 'globalThis'
           },
-          // plugins: [
-          //   NodeGlobalsPolyfillPlugin({
-          //     buffer: true,
-          //   })
-          // ]
+          plugins: [
+            NodeGlobalsPolyfillPlugin({
+              buffer: true,
+              process: true
+            })
+          ]
         }
       },
       build: {
@@ -80,11 +81,12 @@ export default defineConfig(({ mode }) => {
         define: {
           global: 'globalThis'
         },
-        // plugins: [
-        //   NodeGlobalsPolyfillPlugin({
-        //     buffer: true
-        //   })
-        // ]
+        plugins: [
+          NodeGlobalsPolyfillPlugin({
+            buffer: true,
+            process: true
+          })
+        ]
       }
     },
     ssr: {
