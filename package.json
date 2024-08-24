@@ -5,9 +5,9 @@
     "dev": "vite",
     "build": "vite build --mode client && vite build",
     "preview": "wrangler pages dev",
-    "deploy": "$npm_execpath run build && wrangler pages deploy"
+    "deploy": "$npm_execpath run build && wrangler pages deploy",
+    "postinstall": "patch-package"
   },
-  "postinstall": "patch-package",
   "dependencies": {
     "@audius/harmony": "^0.1.0",
     "@audius/sdk": "^4.2.0",
