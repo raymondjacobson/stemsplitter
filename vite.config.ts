@@ -1,7 +1,7 @@
 import pages from '@hono/vite-cloudflare-pages'
 import devServer from '@hono/vite-dev-server'
 import { UserConfig, defineConfig } from 'vite'
-// import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 import react from '@vitejs/plugin-react'
 // import nodePolyfills from 'rollup-plugin-polyfill-node'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
@@ -44,11 +44,11 @@ export default defineConfig(({ mode }) => {
           define: {
             global: 'globalThis'
           },
-          // plugins: [
-          //   NodeGlobalsPolyfillPlugin({
-          //     buffer: true,
-          //   })
-          // ]
+          plugins: [
+            NodeGlobalsPolyfillPlugin({
+              buffer: true,
+            })
+          ]
         }
       },
       build: {
@@ -74,44 +74,16 @@ export default defineConfig(({ mode }) => {
       devServer({
         entry: 'src/index.tsx'
       }),
-      // alias({
-      //   entries: [
-      //     { find: 'fs', replacement: 'browserify-fs' },
-      //     { find: 'crypto', replacement: 'node:crypto' },
-      //     { find: 'stream', replacement: 'node:stream' }
-      //   ]
-      // }),
-      // replace({
-      //   delimiters: ['',''],
-      //   sourcemap: true,
-      //   verbose: true,
-      //   preventAssignment: true,
-      //   'from"fs"': 'from "browserify-fs"',
-      //   'from"crypto"': 'from "node:crypto"',
-      //   'from"stream"': 'from "node:stream"'
-      // }),
       nodePolyfills({
         protocolImports: true,
       }),
       replaceNodeImports(),
-      // nodePolyfills({
-      //   globals: {
-      //     Buffer: true,
-      //     global: true,
-      //     process: true
-      //   },
-      //   protocolImports: true
-      // })
-      // resolve({
-      //   browser: true,
-      //   preferBuiltins: false
-      // })
     ],
-    resolve: {
-      alias: {
-        stream: 'node:stream', // Ensure this alias points correctly
-      },
-    },
+    // resolve: {
+    //   alias: {
+    //     stream: 'node:stream', // Ensure this alias points correctly
+    //   },
+    // },
     // build: {
     //   rollupOptions: {
     //     external: ['fwd-stream', 'readable-stream'],  // Exclude them from the bundle
@@ -128,12 +100,15 @@ export default defineConfig(({ mode }) => {
         define: {
           global: 'globalThis'
         },
-        // plugins: [
-        //   NodeGlobalsPolyfillPlugin({
-        //     buffer: true
-        //   })
-        // ]
+        plugins: [
+          NodeGlobalsPolyfillPlugin({
+            buffer: true
+          })
+        ]
       }
+    },
+    define: {
+      'process.env': {}
     },
     build: {
       commonjsOptions: {
