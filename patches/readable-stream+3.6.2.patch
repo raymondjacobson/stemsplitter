@@ -1,3 +1,10 @@
+diff --git a/node_modules/readable-stream/lib/internal/streams/stream.js b/node_modules/readable-stream/lib/internal/streams/stream.js
+index ce2ad5b..1e32295 100644
+--- a/node_modules/readable-stream/lib/internal/streams/stream.js
++++ b/node_modules/readable-stream/lib/internal/streams/stream.js
+@@ -1 +1 @@
+-module.exports = require('stream');
++module.exports = require('node:stream');
 diff --git a/node_modules/readable-stream/readable.js b/node_modules/readable-stream/readable.js
 index 9e0ca12..1a53059 100644
 --- a/node_modules/readable-stream/readable.js
