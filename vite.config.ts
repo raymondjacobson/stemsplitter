@@ -86,7 +86,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     ssr: {
-      external: ['react', 'react-dom']
+      external: ['react', 'react-dom', 'process']
     },
     define: {
       'process.env': {}
