@@ -89,15 +89,15 @@ export default defineConfig(({ mode }) => {
       //   'from"crypto"': 'from "node:crypto"',
       //   'from"stream"': 'from "node:stream"'
       // }),
-      // replaceNodeImports(),
-      nodePolyfills({
-        globals: {
-          Buffer: true,
-          global: true,
-          process: true
-        },
-        protocolImports: true
-      })
+      replaceNodeImports(),
+      // nodePolyfills({
+      //   globals: {
+      //     Buffer: true,
+      //     global: true,
+      //     process: true
+      //   },
+      //   protocolImports: true
+      // })
       // resolve({
       //   browser: true,
       //   preferBuiltins: false
