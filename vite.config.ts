@@ -3,8 +3,8 @@ import devServer from '@hono/vite-dev-server'
 import { UserConfig, defineConfig } from 'vite'
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 import wasm from 'vite-plugin-wasm'
-import replace from '@rollup/plugin-replace'
 import commonjs from '@rollup/plugin-commonjs'
+import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => {
   let config: UserConfig = {
@@ -12,14 +12,10 @@ export default defineConfig(({ mode }) => {
       pages({
         entry: 'src/index.tsx'
       }),
-      wasm(),
       devServer({
         entry: 'src/index.tsx',
       }),
-      replace({
-        preventAssignment: true,
-        'require$$0': 'require$$0_renamed',
-      }),
+      wasm(),
       commonjs({
         include: [/node_modules/],
         transformMixedEsModules: true
@@ -36,12 +32,6 @@ export default defineConfig(({ mode }) => {
           })
         ]
       }
-    },
-    build: {
-      commonjsOptions: {
-        include: [/node_modules/],
-        transformMixedEsModules: true,
-      },
     }
   }
 
@@ -49,17 +39,8 @@ export default defineConfig(({ mode }) => {
     config = {
       ...config,
       plugins: [
-        pages({
-          entry: 'src/index.tsx'
-        }),
-        wasm(),
-        devServer({
-          entry: 'src/index.tsx',
-        }),
-        replace({
-          preventAssignment: true,
-          'require$$0': 'require$$0_renamed',
-        }),
+        react(),
+        wasm()
       ],
       build: {
         ...config.build,
