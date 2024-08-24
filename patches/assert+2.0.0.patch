@@ -1,0 +1,13 @@
+diff --git a/node_modules/assert/build/internal/assert/assertion_error.js b/node_modules/assert/build/internal/assert/assertion_error.js
+index 9295f0a..416d8ff 100644
+--- a/node_modules/assert/build/internal/assert/assertion_error.js
++++ b/node_modules/assert/build/internal/assert/assertion_error.js
+@@ -32,7 +32,7 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
+ 
+ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+ 
+-var _require = require('util/'),
++var _require = require('node:util'),
+     inspect = _require.inspect;
+ 
+ var _require2 = require('../errors'),
