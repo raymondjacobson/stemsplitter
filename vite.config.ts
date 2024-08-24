@@ -89,6 +89,9 @@ export default defineConfig(({ mode }) => {
       //   'from"crypto"': 'from "node:crypto"',
       //   'from"stream"': 'from "node:stream"'
       // }),
+      nodePolyfills({
+        protocolImports: true,
+      }),
       replaceNodeImports(),
       // nodePolyfills({
       //   globals: {
@@ -103,6 +106,11 @@ export default defineConfig(({ mode }) => {
       //   preferBuiltins: false
       // })
     ],
+    resolve: {
+      alias: {
+        stream: 'node:stream', // Ensure this alias points correctly
+      },
+    },
     // build: {
     //   rollupOptions: {
     //     external: ['fwd-stream', 'readable-stream'],  // Exclude them from the bundle
