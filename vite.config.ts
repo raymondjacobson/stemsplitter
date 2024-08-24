@@ -60,10 +60,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      // react(),
-      // nodePolyfills({
-      //   // include: ['crypto', 'stream', 'fs']
-      // }),
+      react(),
       pages({
         entry: 'src/index.tsx'
       }),
@@ -72,9 +69,6 @@ export default defineConfig(({ mode }) => {
       }),
       nodePolyfills({
         protocolImports: true,
-        globals: {
-          process: false,
-        },
       }),
       replaceNodeImports(),
     ],
@@ -91,8 +85,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     define: {
-      'process.env': {},
-      'process': {}
+      'process.env': {}
     },
     build: {
       commonjsOptions: {
