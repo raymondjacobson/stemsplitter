@@ -65,7 +65,8 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       pages({
-        entry: 'src/index.tsx'
+        entry: 'src/index.tsx',
+        minify: false
       }),
       devServer({
         entry: 'src/index.tsx'
