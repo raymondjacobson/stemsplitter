@@ -40,7 +40,7 @@ export default defineConfig(({ mode }) => {
           plugins: [
             NodeGlobalsPolyfillPlugin({
               buffer: true,
-              process: true
+              process: false
             })
           ]
         }
@@ -65,9 +65,7 @@ export default defineConfig(({ mode }) => {
       devServer({
         entry: 'src/index.tsx'
       }),
-      nodePolyfills({
-        include: ['process']
-      }),
+      nodePolyfills(),
       replaceNodeImports(),
     ],
     optimizeDeps: {
@@ -78,7 +76,7 @@ export default defineConfig(({ mode }) => {
         plugins: [
           NodeGlobalsPolyfillPlugin({
             buffer: true,
-            process: true
+            process: false
           })
         ]
       }
