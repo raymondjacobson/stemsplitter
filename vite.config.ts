@@ -22,7 +22,8 @@ function replaceNodeImports(): Plugin {
             // Match various patterns for `crypto` and `stream` imports
             .replace(/from\s*['"]fs['"]/g, 'from"browserify-fs"')
             .replace(/from\s*['"]crypto['"]/g, 'from"node:crypto"')
-            .replace(/from\s*['"]stream['"]/g, 'from"node:stream"');
+            .replace(/from\s*['"]stream['"]/g, 'from"node:stream"')
+            .replace(/("require")("stream")/g, '("require")("node:stream")');
             // .replaceAll("\"crypto\"", "\"node:crypto\"")
             // .replaceAll("\"stream\"", "\"node:stream\"")
             // .replaceAll("\"fs\"", "\"browserify-fs\"")
