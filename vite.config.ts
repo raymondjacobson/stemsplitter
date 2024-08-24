@@ -89,7 +89,15 @@ export default defineConfig(({ mode }) => {
       //   'from"crypto"': 'from "node:crypto"',
       //   'from"stream"': 'from "node:stream"'
       // }),
-      replaceNodeImports(),
+      // replaceNodeImports(),
+      nodePolyfills({
+        globals: {
+          Buffer: true,
+          global: true,
+          process: true
+        },
+        protocolImports: true
+      })
       // resolve({
       //   browser: true,
       //   preferBuiltins: false
@@ -100,12 +108,12 @@ export default defineConfig(({ mode }) => {
     //     external: ['fwd-stream', 'readable-stream'],  // Exclude them from the bundle
     //   },
     // },
-    resolve: {
-      // dedupe: ['fwd-stream', 'readable-stream'],  // Ensure only one version of these packages is used
-      alias: {
-        stream: 'stream-browserify'
-      }
-    },
+    // resolve: {
+    //   // dedupe: ['fwd-stream', 'readable-stream'],  // Ensure only one version of these packages is used
+    //   alias: {
+    //     stream: 'stream-browserify'
+    //   }
+    // },
     optimizeDeps: {
       esbuildOptions: {
         define: {
@@ -118,5 +126,10 @@ export default defineConfig(({ mode }) => {
         // ]
       }
     },
+    build: {
+      commonjsOptions: {
+        transformMixedEsModules: true
+      }
+    }
   } as UserConfig
 })
