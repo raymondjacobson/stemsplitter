@@ -2,7 +2,8 @@ import { Hono } from "hono"
 import { renderToString } from "react-dom/server"
 import { z } from "zod"
 import { zValidator } from '@hono/zod-validator'
-import { Genre, StemCategory, UploadTrackRequest, sdk } from '@audius/sdk'
+import { Genre, StemCategory, UploadTrackRequest } from '@audius/sdk'
+import type { AudiusSdk } from '@audius/sdk/dist/sdk'
 import { logger } from 'hono/logger'
 import { HTTPException } from 'hono/http-exception'
 import fetch from 'cross-fetch'
@@ -16,12 +17,23 @@ const audioShakeCallbackUrl = import.meta.env.VITE_AUDIO_SHAKE_CALLBACK_URL as s
 const app = new Hono()
 app.use(logger())
 
-const audiusSdk = sdk({
-  environment,
-  apiKey,
-  apiSecret,
-  appName: 'Audius Shake'
-})
+let audiusSdk: AudiusSdk
+
+const getAudiusSdk = async () => {
+  // Need to dynamically import the SDK to prevent exceeding startup CPU time limit
+  const { sdk } = await import('@audius/sdk')
+
+  if (!audiusSdk) {
+    audiusSdk = sdk({
+      environment,
+      apiKey,
+      apiSecret,
+      appName: 'Audius Shake'
+    })
+  }
+
+  return audiusSdk
+}
 
 const STEM_OPTIONS = [
   'vocals',
@@ -87,6 +99,7 @@ app.post(
   zValidator('json', z.object({ trackId: z.string() })),
   async (c) => {
     try {
+      const audiusSdk = await getAudiusSdk()
       const { trackId } = c.req.valid('json')
       if (!trackId) {
         throw new Error('no trackId')
@@ -199,55 +212,90 @@ app.post(
     }))
   })),
   async (c) => {
-  const { trackId, userId, isMonetized, amount, stems } = c.req.valid('json')
-  const track = await audiusSdk.tracks.getTrack({ trackId })
-  if (!track || !track.data || !track.data.id) {
-    throw new Error('no track found')
-  }
-  
-  for (const stem of stems) {
-    let category
-    switch (stem.job.metadata.name) {
-      case 'vocals':
-        category = StemCategory.LEAD_VOCALS
-        break
-      case 'instrumental':
-        category = StemCategory.INSTRUMENTAL
-        break
-      case 'bass':
-        category = StemCategory.BASS
-        break
-      case 'drums':
-        category = StemCategory.PERCUSSION
-        break
-      default:
-        category = StemCategory.OTHER
+    const audiusSdk = await getAudiusSdk()
+    const { trackId, userId, isMonetized, amount, stems } = c.req.valid('json')
+    const track = await audiusSdk.tracks.getTrack({ trackId })
+    if (!track || !track.data || !track.data.id) {
+      throw new Error('no track found')
     }
-    const trackFileResponse = await fetch(stem.job.outputAssets[0].link)
-    const trackFileBuffer = Buffer.from(await trackFileResponse.arrayBuffer())
-    const trackImageResponse = await fetch(track.data?.artwork?._150x150 ?? '')
-    const imageFileBuffer = Buffer.from(await trackImageResponse.arrayBuffer())
-    const name = stem.job.outputAssets[0].name
-    const metadata: UploadTrackRequest['metadata'] = {
-      title: stem.job.metadata.name,
-      genre: (track.data?.genre as Genre) ?? Genre.ALTERNATIVE,
-      isDownloadable: true,
-      stemOf: {
-        parentTrackId: trackId,
-        category
-      },
-      origFilename: name,
-      isOriginalAvailable: true
+    
+    for (const stem of stems) {
+      let category
+      switch (stem.job.metadata.name) {
+        case 'vocals':
+          category = StemCategory.LEAD_VOCALS
+          break
+        case 'instrumental':
+          category = StemCategory.INSTRUMENTAL
+          break
+        case 'bass':
+          category = StemCategory.BASS
+          break
+        case 'drums':
+          category = StemCategory.PERCUSSION
+          break
+        default:
+          category = StemCategory.OTHER
+      }
+      const trackFileResponse = await fetch(stem.job.outputAssets[0].link)
+      const trackFileBuffer = Buffer.from(await trackFileResponse.arrayBuffer())
+      const trackImageResponse = await fetch(track.data?.artwork?._150x150 ?? '')
+      const imageFileBuffer = Buffer.from(await trackImageResponse.arrayBuffer())
+      const name = stem.job.outputAssets[0].name
+      const metadata: UploadTrackRequest['metadata'] = {
+        title: stem.job.metadata.name,
+        genre: (track.data?.genre as Genre) ?? Genre.ALTERNATIVE,
+        isDownloadable: true,
+        stemOf: {
+          parentTrackId: trackId,
+          category
+        },
+        origFilename: name,
+        isOriginalAvailable: true
+      }
+      await audiusSdk.tracks.uploadTrack({
+        userId,
+        metadata,
+        trackFile: { buffer: trackFileBuffer, name },
+        coverArtFile: { buffer: imageFileBuffer }
+      })
     }
-    await audiusSdk.tracks.uploadTrack({
-      userId,
-      metadata,
-      trackFile: { buffer: trackFileBuffer, name },
-      coverArtFile: { buffer: imageFileBuffer }
-    })
-  }
 
-  if (isMonetized && amount) {
+    if (isMonetized && amount) {
+      await audiusSdk.tracks.updateTrack({
+        userId,
+        trackId: track.data?.id,
+        metadata: {
+          isDownloadable: true,
+          isDownloadGated: true,
+          downloadConditions: {
+            usdcPurchase: {
+              price: amount,
+              splits: {}
+            }
+          }
+        }
+      })
+    }
+    return c.json({ link: track.data?.permalink })
+  }
+)
+
+// stem should have title, category, link
+app.post(
+  '/monetize',
+  zValidator('json', z.object({
+    trackId: z.string(),
+    userId: z.string(),
+    amount: z.number(),
+  })),
+  async (c) => {
+    const audiusSdk = await getAudiusSdk()
+    const { trackId, userId, amount } = c.req.valid('json')
+    const track = await audiusSdk.tracks.getTrack({ trackId })
+    if (!track || !track.data || !track.data.id) {
+      throw new Error('no track found')
+    }
     await audiusSdk.tracks.updateTrack({
       userId,
       trackId: track.data?.id,
@@ -262,40 +310,9 @@ app.post(
         }
       }
     })
+    return c.json({ link: track.data?.permalink })
   }
-  return c.json({ link: track.data?.permalink })
-})
-
-// stem should have title, category, link
-app.post(
-  '/monetize',
-  zValidator('json', z.object({
-    trackId: z.string(),
-    userId: z.string(),
-    amount: z.number(),
-  })),
-  async (c) => {
-  const { trackId, userId, amount } = c.req.valid('json')
-  const track = await audiusSdk.tracks.getTrack({ trackId })
-  if (!track || !track.data || !track.data.id) {
-    throw new Error('no track found')
-  }
-  await audiusSdk.tracks.updateTrack({
-    userId,
-    trackId: track.data?.id,
-    metadata: {
-      isDownloadable: true,
-      isDownloadGated: true,
-      downloadConditions: {
-        usdcPurchase: {
-          price: amount,
-          splits: {}
-        }
-      }
-    }
-  })
-  return c.json({ link: track.data?.permalink })
-})
+)
 
 export type AppType = typeof app
 
