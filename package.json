@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@audius/harmony": "^0.1.0",
-    "@audius/sdk": "^5.0.0",
+    "@audius/sdk": "5.1.0",
     "@hono/zod-validator": "^0.2.2",
     "cross-fetch": "^4.0.0",
     "hono": "^4.4.6",
