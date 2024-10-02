@@ -551,7 +551,7 @@ const Page = () => {
             <Flex alignItems='center' justifyContent='center'>
               <Flex direction='column' gap='l' w='50%'>
               <Text variant='body' color='default'>
-                <Text variant='body' strength='strong'>audius shake</Text> lets you take your tracks on Audius, split them up into stems using AI✨ and attach them back
+                <Text variant='body' strength='strong'>stem splitter</Text> lets you take your tracks on Audius, split them up into stems using AI✨ and attach them back
                 onto your track. Offer bundled releases, host remix competitions, and reach more fans with just a few clicks.
               </Text>
               <Flex alignItems='center' gap='s'>
