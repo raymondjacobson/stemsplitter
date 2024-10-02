@@ -54,6 +54,7 @@ app.get('/', (c) => {
           ) : (
             <script type='module' src='/src/client/main.tsx'></script>
           )}
+          <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
         </head>
         <body>
           <div id='root'></div>
