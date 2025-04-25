@@ -93,41 +93,56 @@ type AudioShakeStemUploadResponse = {
 type AudioShakeStatusResponse = {
   link: string
 }
-  
+
+type AudioShakeUsageResponse = {
+  clientId: string
+  usage: Array<{
+    month: string
+    totalJobs: number
+    totalMinutes: number
+  }>
+}
 
 app.post(
   '/generate',
   zValidator('json', z.object({ trackId: z.string() })),
   async (c) => {
+    console.log('Generate called')
     try {
       const audiusSdk = await getAudiusSdk()
+      console.log('Audius SDK fetched')
       const { trackId } = c.req.valid('json')
+      console.log('Track ID fetched', trackId)
       if (!trackId) {
         throw new Error('no trackId')
       }
       const track = await audiusSdk.tracks.getTrack({ trackId })
+      console.log('Track fetched', track)
       if (!track) {
         throw new Error('no track found')
       }
-      const link = await audiusSdk.tracks.streamTrack({ trackId })
+      const link = await audiusSdk.tracks.getTrackStreamUrl({ trackId })
+      console.log('Stream link fetched', link)
       if (!link) {
         throw new Error('no stream link')
       }
 
+      const body = JSON.stringify({
+        link,
+        name: track.data?.title
+      })
+      console.log('Generate called with body', body)
       const res = await fetch('https://groovy.audioshake.ai/upload/link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${audioShakeToken}`
         },
-        body: JSON.stringify({
-          link,
-          name: track.data?.title
-        })
+        body
       })
       const uploadJson: AudioShakeUploadResponse | AudioShakeError = await res.json()
-      console.log(uploadJson)
-      
+      console.log('Generate response', uploadJson)
+
       if (!res.ok || 'error' in uploadJson) {
         throw new Error('message' in uploadJson ? uploadJson.message : undefined)
       }
@@ -314,6 +329,28 @@ app.post(
     return c.json({ link: track.data?.permalink })
   }
 )
+
+app.get('/usage', async (c) => {
+  try {
+    const res = await fetch('https://groovy.audioshake.ai/usage', {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'Authorization': `Bearer ${audioShakeToken}`
+      }
+    })
+    
+    const json: AudioShakeUsageResponse | AudioShakeError = await res.json()
+    if (!res.ok || 'error' in json) {
+      throw new Error('message' in json ? json.message : undefined)
+    }
+
+    return c.json(json)
+  } catch (e) {
+    console.error('Caught error: ', e)
+    throw new HTTPException(500, { message: (e as Error).message || 'Unknown server error', cause: e })
+  }
+})
 
 export type AppType = typeof app
 

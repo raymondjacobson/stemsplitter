@@ -21,6 +21,8 @@ import { keyframes } from '@emotion/react'
 import { Scrubber } from './components/Scrubber'
 import { AppType } from '..'
 import { hc } from "hono/client";
+import './App.css'
+import { UsageBanner } from './components/UsageBanner'
 
 const environment = import.meta.env.VITE_ENVIRONMENT as 'staging' | 'production'
 const client = hc<AppType>('/');
@@ -478,6 +480,7 @@ const Page = () => {
   const loginWithAudiusButtonRef = useRef<HTMLDivElement>(null)
   const { sdk } = useSdk()
   const { user, login, status } = useAuth()
+  const [isLoadingTracks, setIsLoadingTracks] = useState(false)
 
   useEffect(() => {
     sdk.oauth?.init({
@@ -505,25 +508,30 @@ const Page = () => {
   const [tracks, setTracks] = useState<Track[]>([])
 
   const fetchTracks = useCallback(async () => {
-    const { data: tracks } = await sdk.users.getTracksByUser({
-      id: user?.id ?? '',
-      userId: user?.id ?? ''
-    })
-    const dn = await sdk.services.discoveryNodeSelector.getSelectedEndpoint()
-    const tracksWithStems = await Promise.all((tracks ?? []).map(
-      async track => {
-        try {
-          const stems = await (await fetch(`${dn}/v1/full/tracks/${track.id}/stems`)).json()
-          track.stems = stems.data
-          return track
-        } catch (e) {
-          track.stems = []
-          return track
+    setIsLoadingTracks(true)
+    try {
+      const { data: tracks } = await sdk.users.getTracksByUser({
+        id: user?.id ?? '',
+        userId: user?.id ?? ''
+      })
+      const dn = await sdk.services.discoveryNodeSelector.getSelectedEndpoint()
+      const tracksWithStems = await Promise.all((tracks ?? []).map(
+        async track => {
+          try {
+            const stems = await (await fetch(`${dn}/v1/full/tracks/${track.id}/stems`)).json()
+            track.stems = stems.data
+            return track
+          } catch (e) {
+            track.stems = []
+            return track
+          }
         }
-      }
-    ))
+      ))
 
-    setTracks(tracksWithStems ?? [])
+      setTracks(tracksWithStems ?? [])
+    } finally {
+      setIsLoadingTracks(false)
+    }
   }, [sdk, user, setTracks])
 
   useEffect(() => {
@@ -537,17 +545,22 @@ const Page = () => {
   }
 
   return (<>
-    <style>{`.audiusLoginButton { font-family: 'Avenir Next LT Pro' };`}</style>
     <Flex pv='3xl' direction='column' alignItems='center' backgroundColor='surface1' w='100vw' h='100%' css={{ overflow: 'scroll', minHeight: '100vh', userSelect: 'none' }} gap='xl'>
       <Animation size={user ? 'small' : 'large'} />
       <Flex p='3xl' w='100%' direction='column' gap='xl'>
       {user
-        ?
-        (
+        ? isLoadingTracks ? (
+          <Paper css={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <Flex direction='column' alignItems='center' justifyContent='center' gap='l' css={{ marginTop: '40px', width: '100%', height: '200px' }}>
+              <div className="spinner" />
+            </Flex>
+          </Paper>
+        ) : (
           <Paper>
             <Catalog tracks={tracks} />
           </Paper>
-          ) : (
+        )
+        : (
             <Flex alignItems='center' justifyContent='center'>
               <Flex direction='column' gap='l' w='50%'>
               <Text variant='body' color='default'>
@@ -577,6 +590,7 @@ export default function App() {
   return (
     <HarmonyThemeProvider theme='day'>
       <AuthProvider>
+        <UsageBanner />
         <Page />
       </AuthProvider>
     </HarmonyThemeProvider>
