@@ -1,4 +1,4 @@
-# audius-shake
+# stem splitter
 
 Take your tracks on Audius, split them up into stems using AI✨ and attach them back onto your track. Offer bundled releases, host remix competitions, and reach more fans with just a few clicks.
 
