@@ -122,9 +122,10 @@ const TrackTile = ({track}: {track: Track}) => {
   const { sdk } = useSdk()
 
   const onPlay = useCallback(async () => {
-    const src = await sdk.tracks.streamTrack({ trackId: track.id })
-    if (audioRef.current.src !== src) {
-      audioRef.current.src = src
+    const res = await sdk.tracks.streamTrackRaw({ trackId: track.id })
+    const url = res.raw.url
+    if (audioRef.current.src !== url) {
+      audioRef.current.src = url
     }
     audioRef.current.play()
     setIsPlaying(true)
